@@ -1,3 +1,13 @@
-# NNraw
+# For Jorge Hotz
 
-Linear Algebra with np to understand bare MLP functionality, for learning purposes.
+Minimal hyperparameter optimization tooling compatible with tinygrad models. 
+
+## Installing
+
+By pip :: => 
+
+realistically, just git clone :: => 
+
+```
+
+```
