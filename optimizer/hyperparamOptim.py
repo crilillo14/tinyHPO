@@ -15,8 +15,14 @@ class hyperparameterOptimizer :
                  modelClass : Type,
                  trainData : Tuple[Tensor, Tensor], 
                  validationData: Tuple[Tensor, Tensor],
-                 # 
                  hyperparamSpace : Dict[str , str]
                  
                  ):
-        pass
+
+        # NOTE : hyperparamSpace defined for each param as "paramName" : [lower bound, upper bound]
+
+        
+
+        self.modelClass = modelClass
+
+ 
