@@ -1,7 +1,7 @@
 from tinygrad import Tensor, nn
 from tinygrad.examples.mnist import fetch_mnist
 import numpy as np
-from hyperparamOptim import HyperparameterOptimizer, OptimizationResult
+from core import HyperparameterOptimizer, OptimizationResult
 
 class SimpleMNISTNet:
     def __init__(self, hidden_size: int = 128, learning_rate: float = 0.01):
