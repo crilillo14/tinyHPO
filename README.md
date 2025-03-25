@@ -19,7 +19,14 @@ cd tinyHPO
 
 *Define a parameter space, and tinyHPO will search it for you!*
 
-Similar to scikit-learn's gridsearchCV,
+You can choose one of three methods for the search:
++ Grid Search (brute force search of the entire parameter space)
++ [Random](https://www.kaggle.com/code/willkoehrsen/intro-to-model-tuning-grid-and-random-search) (picks n random model hyperparameter configs to test)
++ Bayesian Search (...)
+
+For small optimization jobs, grid search is best. 
+Random Search is, you know, random. So gamble if you want, you might get an optimal solution in very few tries!
+Bayesian Search is **best**. Less random, more of an educated guess. 
 
 > Note : In the tinygrad docs, models are often, if not always defined as follows:
 
@@ -54,3 +61,5 @@ study = hpo.create_study()
 
 
 ```
+
+
