@@ -1,2 +1,2 @@
-from tinygrad import Device
-print(Device.DEFAULT)
+from tinygrad import device
+print(device.default)
