@@ -1,15 +1,19 @@
 from typing import list, tuple, union, optional, dict, callable, any
 from tinygrad import tensor, nn, device, dtype, tensor
 
-from utils.gaussian_process import gaussian_process
+from strategies import get_hpo_strategy
 
 import numpy as np
 
-from 
 
 class hyperparameter_optimizer:
 
-    def __init__(self, model, metric_to_maximize,
+
+    # TODO: assign types to args
+    def __init__(self, 
+                 model,
+                 param_grid,
+                 metric_to_maximize,
                  maximize : bool = True,
                  search_method : str = 'bayesian',
                  ) -> None:
@@ -19,12 +23,14 @@ class hyperparameter_optimizer:
 
         self.model = model
         self.metric = metric_to_maximize if maximize == True else -metric_to_maximize
-        self.gp = gaussian_process()
         self.best_score = float("-inf")
         self.best_params = None
         self.learning_process = []      # keeps track of study process
+    
+        # gridsearch, random, or BO
+        self.search_method = get_hpo_strategy(search_method)
 
-        self.method
+
         
 
     """
