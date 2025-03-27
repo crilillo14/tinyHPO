@@ -1,4 +1,4 @@
-from typing import Any, Optional, list, tuple, union, optional, dict, callable, any
+from typing import Any, Callable, Optional, list, tuple, union, optional, dict, callable, any
 from tinygrad import tensor, nn, device, dtype, tensor
 
 from strategies import get_hpo_strategy
@@ -9,13 +9,15 @@ import numpy as np
 class hyperparameter_optimizer:
 
     # TODO: assign types to args
+    # TODO: Figure out data loading
     def __init__(self,
                  model,
                  optimizer,
-                 loss_function,
-                 dataset: Optional[Any],
-                 Xtrain,
-                 Ytrain,
+                 loss_function : Callable,
+                 dataset = None,
+                 data_split : Callable = None,
+                 Xtrain : List[Any],
+                 Ytrain : List[Any],
                  Xtest,
                  Ytest,
                  parameter_grid,
@@ -24,11 +26,13 @@ class hyperparameter_optimizer:
                  search_method: str = 'bayesian',
                  ) -> None:
 
-        # props
+        
 
         self.model = model
         self.optimizer = optimizer
         self.parameter_grid = parameter_grid
+        
+        # -- scoring --
         self.metric = metric_to_maximize if maximize == True else -metric_to_maximize
         self.best_score = float("-inf")
         self.best_params = None
@@ -37,6 +41,7 @@ class hyperparameter_optimizer:
         # gridsearch, random, or BO
         self.search_method = get_hpo_strategy(search_method)
 
+        # data 
     """
      * calculates best hyperparams. 
     """
