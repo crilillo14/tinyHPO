@@ -5,7 +5,7 @@ Must :
 [ ] Implement gridsearch and / or random search
 [ ] Develop test cases for simple uses of study()
 [ ] Enforce type safety in tinyHPO functions and constructors.
-[ ] ...
+[ ] check if possible to parallelize gridsearches ??? 
 
 Should :
 
