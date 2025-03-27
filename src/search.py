@@ -1,6 +1,8 @@
-from strategies import bayesiansearch, gridsearch, randomsearch
+from strategies.randomsearch import RandomSearch
+from strategies.gridsearch import GridSearch
 
-def get_hpo_strategy(s : str):
+
+def get_hpo_strategy(s: str):
     if s == "bayesian":
         return BayesianSearch()
     elif s == "random":
