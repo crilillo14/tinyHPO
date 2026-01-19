@@ -59,3 +59,6 @@ class RandomSearch:
             next_hyperparams[key] = hyperparam
 
         return next_hyperparams
+
+    def __repr__(self) -> str:
+       pass

@@ -5,6 +5,13 @@ from strategies import get_hpo_strategy
 
 import numpy as np
 
+from searchimport Path
+__all__ = [
+        randomSearch,   # explorative -- faster, less likely to find global maxima
+        gridSearch,     # exploitative -- slower, guranteed to find global maxima, but sometimes computationally infeasible. Best use case is a small network
+        bayesianSearch  # balanced -- best for larger nns.
+        ]
+
 
 class hyperparameter_optimizer:
 
@@ -59,7 +66,8 @@ class hyperparameter_optimizer:
             optimizer_hp = current_hyperparameters[]
 
             model = self.build_model(current_hyperparameters)
-            m
+            m : int = 1
+
 
     def build_model(self):
         pass
