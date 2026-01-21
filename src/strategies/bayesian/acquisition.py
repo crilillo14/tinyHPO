@@ -1,32 +1,29 @@
 """
-            -- acquisition.py --
-
 Acquisition functions for Bayesian Optimization.
+With each function there exists an exploitative-explorative tradeoff.
 
-These functions balance exploration (high uncertainty) vs exploitation
-(high predicted value) when selecting the next point to evaluate.
+Methods implemented as outlined in Algorithms for Optimization by Kochenderfer. 
+
+1. Prediction-based Exploration
+    Chooses x_{m+1} to minimize M(x), the mean function of the surrogate gaussian process.
+2. Error-based Exploration
+    Chooses x_{m+1} that maximizes sig(x), the std. dev of the surrogate gaussian process. 
+3. Lower-Confidence Bound Exploration
+    Chooses x_{m+1} that minimizes M(x) + k*sig(x), where
+    k >= 0 {
+            k = 0 <=> pred based)
+            k => inf <=> error based 
+           }
+           
+4. prob of improvement
+
+5. expected improvement 
+        
 """
 
 import numpy as np
 from scipy.stats import norm
 from typing import Callable
-
-
-def upper_confidence_bound(mu: np.ndarray, sigma: np.ndarray, kappa: float = 2.0) -> np.ndarray:
-    """
-    Upper Confidence Bound (UCB) acquisition function.
-
-    UCB(x) = mu(x) + kappa * sigma(x)
-
-    Args:
-        mu: Predicted mean values
-        sigma: Predicted standard deviations
-        kappa: Exploration-exploitation tradeoff parameter (higher = more exploration)
-
-    Returns:
-        UCB values for each point
-    """
-    return mu + kappa * sigma
 
 
 def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:
@@ -54,6 +51,7 @@ def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: f
     return ei
 
 
+# 19.3: 
 def probability_of_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:
     """
     Probability of Improvement (PI) acquisition function.
@@ -93,7 +91,6 @@ def lower_confidence_bound(mu: np.ndarray, sigma: np.ndarray, kappa: float = 2.0
 
 
 ACQUISITION_FUNCTIONS = {
-    'ucb': upper_confidence_bound,
     'ei': expected_improvement,
     'pi': probability_of_improvement,
     'lcb': lower_confidence_bound,
