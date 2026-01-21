@@ -1,34 +1,31 @@
 from typing import Any, Callable, Optional, list, tuple, union, optional, dict, callable, any
 from tinygrad import tensor, nn, device, dtype, tensor
+import tinygrad
 
 from strategies import get_hpo_strategy
 
 import numpy as np
 
-from searchimport Path
-__all__ = [
-        randomSearch,   # explorative -- faster, less likely to find global maxima
-        gridSearch,     # exploitative -- slower, guranteed to find global maxima, but sometimes computationally infeasible. Best use case is a small network
-        bayesianSearch  # balanced -- best for larger nns.
-        ]
+from typing import Any
+
+"""
+Search methods.
+
+randomSearch: [explorative] -- faster, less likely to find global maxima 
+gridSearch: [exploitative] -- slower, guranteed to find global maxima, but sometimes computationally infeasible. Best for small nets. 
+bayesianSearch  # exploration-exploitation tradeoff -- best for high dimensional hyperparam spaces. 
+"""
 
 
-class hyperparameter_optimizer:
+class HPOptimizer:
 
     # TODO: assign types to args
     # TODO: Figure out data loading
     def __init__(self,
-                 model,
-                 optimizer,
+                 model : Any, 
                  loss_function : Callable,
+                 metric_to_maximize : Callable, # in most cases, an inference step followed by accuracy measurement. Can be loss too.
                  dataset = None,
-                 data_split : Callable = None,
-                 Xtrain : List[Any],
-                 Ytrain : List[Any],
-                 Xtest,
-                 Ytest,
-                 parameter_grid,
-                 metric_to_maximize,
                  maximize: bool = True,
                  search_method: str = 'bayesian',
                  ) -> None:
@@ -36,14 +33,14 @@ class hyperparameter_optimizer:
         
 
         self.model = model
-        self.optimizer = optimizer
         self.parameter_grid = parameter_grid
+        self.X
         
         # -- scoring --
         self.metric = metric_to_maximize if maximize == True else -metric_to_maximize
         self.best_score = float("-inf")
         self.best_params = None
-        self.learning_process = []      # keeps track of study process
+        self.hp_history = []      # keeps track of search history
 
         # gridsearch, random, or BO
         self.search_method = get_hpo_strategy(search_method)
@@ -53,7 +50,7 @@ class hyperparameter_optimizer:
      * calculates best hyperparams. 
     """
 
-    def hyperoptimize(self, n_trials: int = 50,
+    def fit(self, n_trials: int = 50,
                       parameter_grid,
                       search_method="bayesian",
 
@@ -69,14 +66,16 @@ class hyperparameter_optimizer:
             m : int = 1
 
 
-    def build_model(self):
+    def buildmodel(self):
         pass
 
-    def _evaluate_model():
+    def fit():
         pass
 
-    def _suggest_next():
+    def __next__():
+        """Next prediction. """
         pass
 
-    def save():
+    def saveconfig():
+        """Save hyperparameter values"""
         pass
