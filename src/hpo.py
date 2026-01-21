@@ -8,6 +8,7 @@ import numpy as np
 
 from typing import Any
 
+
 """
 Search methods.
 
@@ -17,17 +18,21 @@ bayesianSearch  # exploration-exploitation tradeoff -- best for high dimensional
 """
 
 
-class HPOptimizer:
+# in general, an hpo just needs to know methods for inference and measure f(x), and a parameter space.
+
+class Hpo:
 
     # TODO: assign types to args
     # TODO: Figure out data loading
     def __init__(self,
-                 model : Any, 
+                 model : Any,
+                 optimizer : Any,
                  loss_function : Callable,
-                 metric_to_maximize : Callable, # in most cases, an inference step followed by accuracy measurement. Can be loss too.
+                 metric_to_minimize : Callable, # in most cases, an inference step followed by loss measurement
                  dataset = None,
-                 maximize: bool = True,
+                 maximize: bool = False,
                  search_method: str = 'bayesian',
+                 acq_fn : str = 'ei'
                  ) -> None:
 
         

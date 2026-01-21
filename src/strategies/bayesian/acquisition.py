@@ -24,6 +24,7 @@ Methods implemented as outlined in Algorithms for Optimization by Kochenderfer.
 import numpy as np
 from scipy.stats import norm
 from typing import Callable
+from numbers import Real
 
 
 def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:

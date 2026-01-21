@@ -1,2 +1,2 @@
 
-from src.strategies.bayesian.gaussianprocess import GaussianProcessRegressor, 
+from src.strategies.bayesian.gaussianprocess import GaussianProcessRegressor

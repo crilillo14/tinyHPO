@@ -1,29 +1,29 @@
 
 """Lib specific type defs"""
 
-from typing import Union, Dict, Tuple, Any
+from typing import Any, List
 from dataclasses import dataclass
-from tinygrad import Tensor, dtypes
-
-
-Real = Union[dtypes.float, dtypes.int , dtypes.double]
+from numbers import Real
 
 @dataclass
 class Hyperparameter:
-    val : Real
-    parameterspace : Tensor
+    """Base class for any hyperparameter"""
+    name: str
+    val: Any
     
-ParameterGrid = Dict[str, Tuple[Real]]
-
-class Config:
-    model : Any     # design choice of tinygrad to have no interface for models. model could be a fn too.
-    optimizer : Any
+@dataclass
+class ScalarHyperparameter(Hyperparameter):
+    """For continuous/discrete scalar values like lr, momentum, dropout"""
+    val: Real
+    lower: Real
+    upper: Real
+    logscale: bool = False  # for lr. makes search space logarithmic:  10^{-9} to 10^{-8} ~~ 1 to 2.
     
-    
+@dataclass 
+class CategoricalHyperparameter(Hyperparameter):
+    """For stuff like optimizer , activation function type """
+    val: Any
+    possiblevalues: List[Any]
 
-
-
-__all__ = [
-    Real,
-    Hyperparameter 
-]
+# Type alias
+ParameterSpace = List[Hyperparameter]
