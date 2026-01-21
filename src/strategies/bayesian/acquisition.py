@@ -24,25 +24,9 @@ Methods implemented as outlined in Algorithms for Optimization by Kochenderfer.
 import numpy as np
 from scipy.stats import norm
 from typing import Callable
-from numbers import Real
 
 
 def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:
-    """
-    Expected Improvement (EI) acquisition function.
-
-    EI(x) = (mu(x) - y_best - xi) * Phi(Z) + sigma(x) * phi(Z)
-    where Z = (mu(x) - y_best - xi) / sigma(x)
-
-    Args:
-        mu: Predicted mean values
-        sigma: Predicted standard deviations
-        y_best: Best observed value so far
-        xi: Exploration parameter (higher = more exploration)
-
-    Returns:
-        EI values for each point
-    """
     sigma = np.maximum(sigma, 1e-9)  # Avoid division by zero
 
     Z = (mu - y_best - xi) / sigma
@@ -54,40 +38,12 @@ def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: f
 
 # 19.3: 
 def probability_of_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:
-    """
-    Probability of Improvement (PI) acquisition function.
-
-    PI(x) = Phi((mu(x) - y_best - xi) / sigma(x))
-
-    Args:
-        mu: Predicted mean values
-        sigma: Predicted standard deviations
-        y_best: Best observed value so far
-        xi: Exploration parameter
-
-    Returns:
-        PI values for each point
-    """
     sigma = np.maximum(sigma, 1e-9)
     Z = (mu - y_best - xi) / sigma
     return norm.cdf(Z)
 
 
-def lower_confidence_bound(mu: np.ndarray, sigma: np.ndarray, kappa: float = 2.0) -> np.ndarray:
-    """
-    Lower Confidence Bound (LCB) acquisition function.
-    For minimization problems.
-
-    LCB(x) = mu(x) - kappa * sigma(x)
-
-    Args:
-        mu: Predicted mean values
-        sigma: Predicted standard deviations
-        kappa: Exploration-exploitation tradeoff parameter
-
-    Returns:
-        LCB values for each point (lower is better for minimization)
-    """
+def lower_confidence_bound(mu: np.ndarray, sigma: np.ndarray, kappa: float) -> np.ndarray:
     return mu - kappa * sigma
 
 
