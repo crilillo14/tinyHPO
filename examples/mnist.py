@@ -1,83 +1,157 @@
-# tinygrad intro in docs ... 
-# note : should change the structure of the class such that the values 
+"""
+            -- mnist.py --
 
+Configurable MNIST classifier using tinygrad.
 
-from tinygrad import device, tensor, nn
+This module provides a flexible MNISTNet class that can be configured
+with different hyperparameters for use with HPO methods.
+"""
+from tinygrad
 from tinygrad.nn.datasets import mnist
-
-# outputs metal :: apple silicon accelerator framework
-print(device.default)
-
-class mnist: 
-    def __init__(self) -> none:
-      self.l1 = nn.conv2d(1, 32, kernel_size=(3,3))
-      self.l2 = nn.conv2d(32, 64, kernel_size=(3,3))
-      self.l3 = nn.linear(1600, 10)
+from typing import Optional
 
 
-class mnist:
-  def __init__(self):
-      self.l1 = nn.conv2d(1, 32, kernel_size=(3,3))
-      self.l2 = nn.conv2d(32, 64, kernel_size=(3,3))
-      self.l3 = nn.linear(1600, 10)
+class MNISTNet:
+    """
+    Configurable MNIST classifier.
 
-  def __call__(self, x:tensor) -> tensor:
-      x = self.l1(x).relu().max_pool2d((2,2))
-      x = self.l2(x).relu().max_pool2d((2,2))
-      return self.l3(x.flatten(1).dropout(0.5))
+    Architecture:
+        Conv2d(1, 32) -> ReLU -> MaxPool
+        Conv2d(32, 64) -> ReLU -> MaxPool
+        Flatten -> Dropout -> Linear(hidden_size) -> ReLU -> Dropout -> Linear(10)
+    """
 
-# -----------------------------------------------------------------------
+    def __init__(self,
+                 hidden_size: int = 128,
+                 dropout: float = 0.5) -> None:
+        """
+        Initialize MNIST network.
 
-x_train, y_train, x_test, y_test = mnist()
-print(x_train.shape, x_train.dtype, y_train.shape, y_train.dtype)
-# (60000, 1, 28, 28) dtypes.uchar (60000,) dtypes.uchar
+        Args:
+            hidden_size: Size of the hidden fully-connected layer
+            dropout: Dropout probability (0 = no dropout)
+        """
+        self.hidden_size = hidden_size
+        self.dropout = dropout
 
+        # Convolutional layers
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=(3, 3))
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=(3, 3))
 
-# -----------------------------------------------------------------------
+        # After conv layers: 28->26->13->11->5, channels=64
+        # Flattened size: 64 * 5 * 5 = 1600
+        self.fc1 = nn.Linear(1600, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, 10)
 
-
-model = mnist()
-acc = (model(x_test).argmax(axis=1) == y_test).mean()
-# note: tinygrad is lazy, and hasn't actually run anything by this point
-print(acc.item())  # ~10% accuracy, as expected from a random model
-
-
-# -----------------------------------------------------------------------
-
-
-optim = nn.optim.adam(nn.state.get_parameters(model))
-batch_size = 128
-def step():
-  tensor.training = true  # makes dropout work 
-  samples = tensor.randint(batch_size, high=x_train.shape[0])
-  x, y = x_train[samples], y_train[samples]
-  optim.zero_grad()
-  loss = model(x).sparse_categorical_crossentropy(y).backward()
-  optim.step()
-  return loss
-
-
-# -----------------------------------------------------------------------
-
-
-import timeit
-timeit.repeat(step, repeat=5, number=1)
-#[0.08268719699981375,
-# 0.07478952900009972,
-# 0.07714716600003158,
-# 0.07785399599970333,
-# 0.07605237000007037]
-
-# -----------------------------------------------------------------------
-
-from tinygrad import tiny_jit
-jit_step = tiny_jit(step)
-
-timeit.repeat(jit_step, repeat=5, number=1)
-# [0.2596786549997887,
-#  0.08989566299987928,
-#  0.0012115650001760514,
-#  0.001010227999813651,
-#  0.0012164899999334011]
+    def __call__(self, x: Tensor) -> Tensor:
+        """Forward pass."""
+        # Conv block 1
+        x = self.conv1(x).relu().max_pool2d((2, 2))
+        # Conv block 2
+        x = self.conv2(x).relu().max_pool2d((2, 2))
+        # Flatten and FC layers
+        x = x.flatten(1)
+        x = x.dropout(self.dropout)
+        x = self.fc1(x).relu()
+        x = x.dropout(self.dropout)
+        x = self.fc2(x)
+        return x
 
 
+def load_mnist():
+    """Load MNIST dataset."""
+    X_train, Y_train, X_test, Y_test = mnist()
+    return X_train, Y_train, X_test, Y_test
+
+
+def train_model(model: MNISTNet,
+                X_train: Tensor,
+                Y_train: Tensor,
+                learning_rate: float = 0.001,
+                batch_size: int = 128,
+                epochs: int = 1,
+                verbose: bool = False) -> float:
+    """
+    Train the model and return final training loss.
+
+    Args:
+        model: MNISTNet instance to train
+        X_train: Training images
+        Y_train: Training labels
+        learning_rate: Learning rate for Adam optimizer
+        batch_size: Batch size for training
+        epochs: Number of training epochs
+        verbose: Print progress
+
+    Returns:
+        Final training loss
+    """
+    optim = nn.optim.Adam(nn.state.get_parameters(model), lr=learning_rate)
+
+    n_samples = X_train.shape[0]
+    steps_per_epoch = n_samples // batch_size
+
+    final_loss = 0.0
+    for epoch in range(epochs):
+        epoch_loss = 0.0
+        for step in range(steps_per_epoch):
+            Tensor.training = True
+            samples = Tensor.randint(batch_size, high=n_samples)
+            x, y = X_train[samples], Y_train[samples]
+
+            optim.zero_grad()
+            loss = model(x).sparse_categorical_crossentropy(y)
+            loss.backward()
+            optim.step()
+
+            epoch_loss += loss.item()
+
+        epoch_loss /= steps_per_epoch
+        final_loss = epoch_loss
+
+        if verbose:
+            print(f"Epoch {epoch + 1}/{epochs}, Loss: {epoch_loss:.4f}")
+
+    return final_loss
+
+
+def evaluate_model(model: MNISTNet,
+                   X_test: Tensor,
+                   Y_test: Tensor) -> float:
+    """
+    Evaluate model accuracy on test set.
+
+    Args:
+        model: Trained MNISTNet instance
+        X_test: Test images
+        Y_test: Test labels
+
+    Returns:
+        Accuracy as a float between 0 and 1
+    """
+    Tensor.training = False
+    predictions = model(X_test).argmax(axis=1)
+    accuracy = (predictions == Y_test).mean().item()
+    return accuracy
+
+
+if __name__ == "__main__":
+    print(f"Device: {Device.DEFAULT}")
+
+    # Load data
+    print("Loading MNIST...")
+    X_train, Y_train, X_test, Y_test = load_mnist()
+    print(f"Train: {X_train.shape}, Test: {X_test.shape}")
+
+    # Create and train model
+    model = MNISTNet(hidden_size=128, dropout=0.5)
+
+    print("\nTraining...")
+    train_model(model, X_train, Y_train,
+                learning_rate=0.001,
+                epochs=3,
+                verbose=True)
+
+    # Evaluate
+    accuracy = evaluate_model(model, X_test, Y_test)
+    print(f"\nTest Accuracy: {accuracy:.2%}")

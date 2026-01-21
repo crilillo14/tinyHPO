@@ -1,0 +1,7 @@
+joblib==1.5.3
+numpy==2.4.1
+polars==1.37.1
+polars-runtime-32==1.37.1
+scipy==1.17.0
+threadpoolctl==3.6.0
+tinygrad==0.12.0

@@ -1,99 +1,232 @@
-from tinygrad import tensor, nn
-from tinygrad.examples.mnist import fetch_mnist
-import numpy as np
-from tinyhpo import hyperparameter_optimizer, optimization_result
+"""
+Integration tests for tinyHPO with MNIST.
 
-class simple_mnistnet:
-    def __init__(self, hidden_size: int = 128, learning_rate: float = 0.01):
-        self.l1 = nn.linear(784, int(hidden_size))  # 28*28 = 784
-        self.l2 = nn.linear(int(hidden_size), 10)
-        self.learning_rate = learning_rate
-        
-    def __call__(self, x):
-        x = self.l1(x).relu()
-        x = self.l2(x).log_softmax()
-        return x
-    
-    def train(self, x, y, batch_size=128, epochs=3):
-        x = x.reshape(-1, 784)  # flatten 28x28 images
-        
-        # convert labels to one-hot
-        y_onehot = np.zeros((y.shape[0], 10))
-        y_onehot[range(y.shape[0]), y] = 1
-        y = tensor(y_onehot)
-        
-        for epoch in range(epochs):
-            for i in range(0, len(x), batch_size):
-                batch_x = x[i:i+batch_size]
-                batch_y = y[i:i+batch_size]
-                
-                # forward pass
-                out = self(batch_x)
-                loss = -(out * batch_y).sum() / batch_size
-                
-                # backward pass
-                loss.backward()
-                
-                # update weights
-                for layer in [self.l1, self.l2]:
-                    layer.weight = layer.weight - layer.weight.grad * self.learning_rate
-                    layer.bias = layer.bias - layer.bias.grad * self.learning_rate
-                    
-                    # zero gradients
-                    layer.weight.grad = none
-                    layer.bias.grad = none
+These are smoke tests that verify the HPO methods work end-to-end
+with a real model, using a reduced number of trials for speed.
+"""
 
-def accuracy_metric(y_true, y_pred):
-    """calculate classification accuracy"""
-    pred_class = y_pred.numpy().argmax(axis=1)
-    true_class = y_true.numpy().argmax(axis=1)
-    return -float((pred_class == true_class).mean())  # negative because we want to maximize accuracy
+import sys
+import os
+import pytest
 
-def main():
-    # load mnist data using tinygrad's fetch_mnist
-    x_train, y_train, x_test, y_test = fetch_mnist()
-    
-    # convert to tensors and normalize
-    x_train, y_train = tensor(x_train).float()/255.0, tensor(y_train)
-    x_test, y_test = tensor(x_test).float()/255.0, tensor(y_test)
-    
-    # define hyperparameter space
-    hyperparam_space = {
-        'hidden_size': (32, 256),  # will be converted to int in model
-        'learning_rate': (0.0001, 0.1)
+# Add src and examples to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'examples'))
+
+from strategies import GridSearch, RandomSearch, BayesianSearch
+
+# Skip if tinygrad not available
+pytest.importorskip("tinygrad")
+
+from tinygrad import Tensor, nn
+from tinygrad.nn.datasets import mnist
+
+
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def mnist_data():
+    """Load MNIST data once for all tests."""
+    X_train, Y_train, X_test, Y_test = mnist()
+    # Use subset for faster tests
+    return X_train[:1000], Y_train[:1000], X_test[:200], Y_test[:200]
+
+
+@pytest.fixture
+def param_grid():
+    """HPO parameter grid for MNIST."""
+    return {
+        "hidden_size": [64, 128],
+        "dropout": [0.0, 0.5],
+        "learning_rate": [0.001, 0.01],
     }
-    
-    # create optimizer
-    optimizer = hyperparameter_optimizer(
-        model_class=simple_mnistnet,
-        train_data=(x_train, y_train),
-        hyperparam_space=hyperparam_space,
-        metric=accuracy_metric,
-        minimize=true  # we're using negative accuracy, so we minimize
-    )
-    
-    # run optimization
-    print("starting bayesian optimization...")
-    results = optimizer.bayesian_optimize(n_iterations=20)
-    
-    # print results
-    print("\n_optimization results:")
-    print(f"best parameters: {results.best_params}")
-    print(f"best accuracy: {-results.best_score:.4f}")  # convert back to positive accuracy
-    
-    # train final model with best parameters
-    best_model = simple_mnistnet(**results.best_params)
-    best_model.train(x_train, y_train.numpy())
-    
-    # evaluate on test set
-    x_test = x_test.reshape(-1, 784)  # flatten test images
-    with tensor.no_grad():
-        test_pred = best_model(x_test)
-        test_accuracy = -accuracy_metric(
-            tensor(np.eye(10)[y_test.numpy()]), 
-            test_pred
-        )
-    print(f"\n_test accuracy with best model: {test_accuracy:.4f}")
+
+
+# -----------------------------------------------------------------------------
+# Model
+# -----------------------------------------------------------------------------
+
+class SimpleMNISTNet:
+    """Simple MNIST classifier for testing."""
+
+    def __init__(self, hidden_size: int = 128, dropout: float = 0.5) -> None:
+        self.hidden_size = hidden_size
+        self.dropout = dropout
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3, 3))
+        self.fc1 = nn.Linear(2704, hidden_size)  # 16 * 13 * 13
+        self.fc2 = nn.Linear(hidden_size, 10)
+
+    def __call__(self, x: Tensor) -> Tensor:
+        x = self.conv1(x).relu().max_pool2d((2, 2))
+        x = x.flatten(1).dropout(self.dropout)
+        x = self.fc1(x).relu()
+        return self.fc2(x)
+
+
+def quick_train(model, X_train, Y_train, learning_rate, steps=10):
+    """Quick training for smoke tests."""
+    optim = nn.optim.Adam(nn.state.get_parameters(model), lr=learning_rate)
+    batch_size = 64
+
+    for _ in range(steps):
+        Tensor.training = True
+        samples = Tensor.randint(batch_size, high=X_train.shape[0])
+        x, y = X_train[samples], Y_train[samples]
+        optim.zero_grad()
+        loss = model(x).sparse_categorical_crossentropy(y)
+        loss.backward()
+        optim.step()
+
+
+def evaluate(model, X_test, Y_test):
+    """Evaluate model accuracy."""
+    Tensor.training = False
+    acc = (model(X_test).argmax(axis=1) == Y_test).mean().item()
+    return acc
+
+
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
+class TestMNISTIntegration:
+    """Integration tests with MNIST model."""
+
+    def test_grid_search_mnist(self, mnist_data, param_grid):
+        """Test GridSearch with MNIST model."""
+        X_train, Y_train, X_test, Y_test = mnist_data
+        search = GridSearch(param_grid)
+
+        results = []
+        for trial in range(3):  # Only 3 trials for speed
+            params = search()
+            if params is None:
+                break
+
+            model = SimpleMNISTNet(
+                hidden_size=params['hidden_size'],
+                dropout=params['dropout']
+            )
+            quick_train(model, X_train, Y_train, params['learning_rate'])
+            acc = evaluate(model, X_test, Y_test)
+
+            results.append({'params': params, 'accuracy': acc})
+
+        assert len(results) == 3
+        assert all(0 <= r['accuracy'] <= 1 for r in results)
+        assert all('hidden_size' in r['params'] for r in results)
+
+    def test_random_search_mnist(self, mnist_data, param_grid):
+        """Test RandomSearch with MNIST model."""
+        X_train, Y_train, X_test, Y_test = mnist_data
+        search = RandomSearch(param_grid, seed=42)
+
+        results = []
+        for trial in range(3):
+            params = search()
+
+            model = SimpleMNISTNet(
+                hidden_size=params['hidden_size'],
+                dropout=params['dropout']
+            )
+            quick_train(model, X_train, Y_train, params['learning_rate'])
+            acc = evaluate(model, X_test, Y_test)
+
+            results.append({'params': params, 'accuracy': acc})
+
+        assert len(results) == 3
+        assert all(0 <= r['accuracy'] <= 1 for r in results)
+
+    def test_bayesian_search_mnist(self, mnist_data, param_grid):
+        """Test BayesianSearch with MNIST model."""
+        X_train, Y_train, X_test, Y_test = mnist_data
+        search = BayesianSearch(param_grid, n_initial=2, seed=42)
+
+        results = []
+        for trial in range(4):
+            params = search()
+            if params is None:
+                break
+
+            model = SimpleMNISTNet(
+                hidden_size=params['hidden_size'],
+                dropout=params['dropout']
+            )
+            quick_train(model, X_train, Y_train, params['learning_rate'])
+            acc = evaluate(model, X_test, Y_test)
+
+            # Update Bayesian search with result
+            search.update(params, acc)
+
+            results.append({'params': params, 'accuracy': acc})
+
+        assert len(results) >= 3
+        assert all(0 <= r['accuracy'] <= 1 for r in results)
+
+        # Check that Bayesian search tracked observations
+        assert len(search.X_observed) == len(results)
+
+    def test_model_instantiation_with_all_param_combinations(self, param_grid):
+        """Verify model can be instantiated with all valid param combinations."""
+        search = GridSearch(param_grid)
+
+        for params in search.get_all():
+            model = SimpleMNISTNet(
+                hidden_size=params['hidden_size'],
+                dropout=params['dropout']
+            )
+            assert model.hidden_size == params['hidden_size']
+            assert model.dropout == params['dropout']
+
+    def test_returned_params_within_bounds(self, param_grid):
+        """Verify all methods return params within defined bounds."""
+        strategies = [
+            GridSearch(param_grid),
+            RandomSearch(param_grid, seed=42),
+            BayesianSearch(param_grid, n_initial=2, seed=42),
+        ]
+
+        for strategy in strategies:
+            for _ in range(5):
+                params = strategy()
+                if params is None:
+                    break
+
+                # Update Bayesian if needed
+                if hasattr(strategy, 'update'):
+                    strategy.update(params, 0.5)
+
+                # Check bounds
+                assert params['hidden_size'] in param_grid['hidden_size']
+                assert params['dropout'] in param_grid['dropout']
+                assert params['learning_rate'] in param_grid['learning_rate']
+
+
+class TestSearchFactory:
+    """Test the search factory function."""
+
+    def test_factory_creates_correct_strategies(self, param_grid):
+        """Test get_hpo_strategy factory function."""
+        from search import get_hpo_strategy
+
+        grid = get_hpo_strategy('grid', param_grid)
+        assert isinstance(grid, GridSearch)
+
+        random = get_hpo_strategy('random', param_grid, seed=42)
+        assert isinstance(random, RandomSearch)
+
+        bayesian = get_hpo_strategy('bayesian', param_grid, seed=42)
+        assert isinstance(bayesian, BayesianSearch)
+
+    def test_factory_invalid_strategy(self, param_grid):
+        """Test factory raises error for invalid strategy."""
+        from search import get_hpo_strategy
+
+        with pytest.raises(ValueError):
+            get_hpo_strategy('invalid', param_grid)
+
 
 if __name__ == "__main__":
-    main()
+    pytest.main([__file__, "-v"])

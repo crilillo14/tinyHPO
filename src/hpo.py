@@ -1,47 +1,56 @@
-from typing import Any, Optional, list, tuple, union, optional, dict, callable, any
+from typing import Any, Callable, Optional, list, tuple, union, optional, dict, callable, any
 from tinygrad import tensor, nn, device, dtype, tensor
+import tinygrad
 
 from strategies import get_hpo_strategy
 
 import numpy as np
 
+from typing import Any
 
-class hyperparameter_optimizer:
+"""
+Search methods.
+
+randomSearch: [explorative] -- faster, less likely to find global maxima 
+gridSearch: [exploitative] -- slower, guranteed to find global maxima, but sometimes computationally infeasible. Best for small nets. 
+bayesianSearch  # exploration-exploitation tradeoff -- best for high dimensional hyperparam spaces. 
+"""
+
+
+class HPOptimizer:
 
     # TODO: assign types to args
+    # TODO: Figure out data loading
     def __init__(self,
-                 model,
-                 optimizer,
-                 loss_function,
-                 dataset: Optional[Any],
-                 Xtrain,
-                 Ytrain,
-                 Xtest,
-                 Ytest,
-                 parameter_grid,
-                 metric_to_maximize,
+                 model : Any, 
+                 loss_function : Callable,
+                 metric_to_maximize : Callable, # in most cases, an inference step followed by accuracy measurement. Can be loss too.
+                 dataset = None,
                  maximize: bool = True,
                  search_method: str = 'bayesian',
                  ) -> None:
 
-        # props
+        
 
         self.model = model
-        self.optimizer = optimizer
         self.parameter_grid = parameter_grid
+        self.X
+        
+        # -- scoring --
         self.metric = metric_to_maximize if maximize == True else -metric_to_maximize
         self.best_score = float("-inf")
         self.best_params = None
-        self.learning_process = []      # keeps track of study process
+        self.hp_history = []      # keeps track of search history
 
         # gridsearch, random, or BO
         self.search_method = get_hpo_strategy(search_method)
 
+        # data 
     """
      * calculates best hyperparams. 
     """
 
-    def hyperoptimize(self, n_trials: int = 50,
+    def fit(self, n_trials: int = 50,
                       parameter_grid,
                       search_method="bayesian",
 
@@ -54,16 +63,19 @@ class hyperparameter_optimizer:
             optimizer_hp = current_hyperparameters[]
 
             model = self.build_model(current_hyperparameters)
-            m
+            m : int = 1
 
-    def build_model(self):
+
+    def buildmodel(self):
         pass
 
-    def _evaluate_model():
+    def fit():
         pass
 
-    def _suggest_next():
+    def __next__():
+        """Next prediction. """
         pass
 
-    def save():
+    def saveconfig():
+        """Save hyperparameter values"""
         pass

@@ -4,58 +4,79 @@
 Search method for hyperparameter tuning given some parameter grid.
 
 Only locally referential: the searcher is only aware of a map of values,
-and suggests a random configuration of them. 
+and suggests a random configuration of them.
 
-param_grid : Parameter grid containing parameters to be optimized. 
-Of the form: 
+param_grid : Parameter grid containing parameters to be optimized.
+Of the form:
 
     param_grid = {
-        "hp1" : [min, max, step],
-        "hp2" : [min, max, step],
+        "hp1" : [val1, val2, val3, ...],
+        "hp2" : [val1, val2, val3, ...],
         ...
     }
 
 """
 
-# TODO: test full compatibility with tinygrad
-
 import numpy as np
 import time
 import os
-from typing import Any
-
+from typing import Any, Dict, List, Optional
+from src.types import ParameterGrid, Real
 
 class RandomSearch:
+    """Random search over parameter space."""
 
     def __init__(self,
-                 param_grid) -> None:
+                 param_grid: ParameterGrid,
+                 seed: Optional[int] = None) -> None:
 
         self.param_grid = param_grid
+        self.keys = list(param_grid.keys())
         self.shape = self._get_shape()
 
-        # get unique seed
-        self.seed = (os.getpid() * int(time.time()) % 2**32)
+        # Get unique seed if not provided
+        if seed is None:
+            seed = (os.getpid() * int(time.time()) % 2**32)
+        self.seed = seed
         self.rng = np.random.default_rng(self.seed)
         self.history = []
+        self.iteration = 0
 
-    def _get_shape(self):
-
+    def _get_shape(self) -> Dict[str, int]:
+        """Get the number of options for each parameter."""
         shape = {}
-        for key, param in self.param_grid:
+        for key, param in self.param_grid.items():
             shape[key] = len(param)
-
         return shape
 
-    def __call__(self) -> Any:
-
+    def __call__(self) -> Dict[str, Any]:
+        """Return a random hyperparameter set."""
         next_hyperparams = {}
 
-        for key, param in self.param_grid:
+        for key, param in self.param_grid.items():
+            # Randomly select an index and get the parameter value
+            index = self.rng.integers(0, self.shape[key])
+            next_hyperparams[key] = param[index]
 
-            # get the list of params, index it with a rand num mod the size of the parameter grid.
-            index = self.rng.random() % self.shape[key]
-            hyperparam = param[index]
-
-            next_hyperparams[key] = hyperparam
-
+        self.history.append(next_hyperparams)
+        self.iteration += 1
         return next_hyperparams
+
+    def sample(self, n: int) -> List[Dict[str, Any]]:
+        """Sample n random hyperparameter sets."""
+        return [self() for _ in range(n)]
+
+    def reset(self, seed: Optional[int] = None) -> None:
+        """Reset the search with optional new seed."""
+        if seed is not None:
+            self.seed = seed
+        self.rng = np.random.default_rng(self.seed)
+        self.history = []
+        self.iteration = 0
+
+    def __len__(self) -> int:
+        """Return total number of possible combinations."""
+        return int(np.prod(list(self.shape.values())))
+
+    def __repr__(self) -> str:
+        return f"RandomSearch(params={self.keys}, seed={self.seed}, sampled={self.iteration})"

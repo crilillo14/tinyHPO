@@ -1,0 +1,13 @@
+[project]
+name = "tinyhpo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.4.1",
+    "polars>=1.37.1",
+    "scipy>=1.17.0",
+    "seaborn>=0.13.2",
+    "tinygrad>=0.12.0",
+]
