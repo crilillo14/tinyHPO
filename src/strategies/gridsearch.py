@@ -9,13 +9,13 @@
 from typing import Any, List, Dict, Iterator
 import numpy as np
 from itertools import product
-from src.types import ParameterGrid, Real
+from src.types import ParameterSpace 
 
 
 class GridSearch:
     """Exhaustive grid search over parameter space."""
 
-    def __init__(self, param_grid: ParameterGrid)-> None:
+    def __init__(self, param_grid: ParameterSpace)-> None:
         self.param_grid = param_grid
         self.keys = list(param_grid.keys())
         self.values = list(param_grid.values())

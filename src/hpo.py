@@ -1,8 +1,8 @@
-from typing import Any, Callable, Optional, list, tuple, union, optional, dict, callable, any
+from typing import Any, Callable, Optional, List, Tuple, Union, Optional, Dict, Callable, Any
 from tinygrad import tensor, nn, device, dtype, tensor
 import tinygrad
 
-from strategies import get_hpo_strategy
+from search import get_hpo_strategy
 
 import numpy as np
 
@@ -42,7 +42,7 @@ class Hpo:
         self.X
         
         # -- scoring --
-        self.metric = metric_to_maximize if maximize == True else -metric_to_maximize
+        self.maximizing = maximize
         self.best_score = float("-inf")
         self.best_params = None
         self.hp_history = []      # keeps track of search history
@@ -56,7 +56,6 @@ class Hpo:
     """
 
     def fit(self, n_trials: int = 50,
-                      parameter_grid,
                       search_method="bayesian",
 
                       ) -> dict[str, float]:
@@ -67,7 +66,7 @@ class Hpo:
             current_hyperparameters, m_id = self.search_method()        # should return hp[], i[]
             optimizer_hp = current_hyperparameters[]
 
-            model = self.build_model(current_hyperparameters)
+
             m : int = 1
 
 

@@ -21,13 +21,13 @@ import numpy as np
 import time
 import os
 from typing import Any, Dict, List, Optional
-from src.types import ParameterGrid, Real
+from src.types import ParameterSpace, ScalarHyperparameter, CategoricalHyperparameter
 
 class RandomSearch:
     """Random search over parameter space."""
 
     def __init__(self,
-                 param_grid: ParameterGrid,
+                 param_grid: ParameterSpace,
                  seed: Optional[int] = None) -> None:
 
         self.param_grid = param_grid
@@ -46,7 +46,8 @@ class RandomSearch:
         """Get the number of options for each parameter."""
         shape = {}
         for key, param in self.param_grid.items():
-            shape[key] = len(param)
+            if param is ScalarHyperparameter:
+                shape[key] = 
         return shape
 
     def __call__(self) -> Dict[str, Any]:
