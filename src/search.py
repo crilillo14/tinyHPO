@@ -4,14 +4,16 @@
 Factory function for HPO search strategies.
 """
 
+
 from typing import Dict, List, Any, Optional
-from src.types import ParameterGrid
+from src.types import ParameterSpace 
+from src.strategies.bayesian.kernels import Kernel, SquaredExponential
 
 from strategies import GridSearch, RandomSearch, BayesianSearch
 
 
 
-def get_hpo_strategy(strategy: str, param_grid: Optional[ParameterGrid], **kwargs):
+def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations=50, seed=None, acquisitionfn='ei', kernel = SquaredExponential):
     """
     Factory function to get an HPO search strategy.
     """
@@ -20,13 +22,9 @@ def get_hpo_strategy(strategy: str, param_grid: Optional[ParameterGrid], **kwarg
     if strategy == "grid":
         return GridSearch(param_grid)
     elif strategy == "random":
-        seed = kwargs.get('seed', None)
-        return RandomSearch(param_grid, seed=seed)
+        return RandomSearch(param_grid, seed=seed, iterations=iterations)
     elif strategy == "bayesian":
-        acquisition = kwargs.get('acquisition', 'ei')
-        n_initial = kwargs.get('n_initial', 5)
-        seed = kwargs.get('seed', None)
-        return BayesianSearch(param_grid, acquisition=acquisition,
+        return BayesianSearch(kernel, param_grid, X, Y, searchstrategy=, acquisition=acquisition,
                              n_initial=n_initial, seed=seed)
     else:
         raise ValueError(f"Unknown strategy: {strategy}. "

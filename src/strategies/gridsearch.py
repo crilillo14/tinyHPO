@@ -9,7 +9,7 @@
 from typing import Any, List, Dict, Iterator
 import numpy as np
 from itertools import product
-from src.types import ParameterSpace 
+from src.types import ParameterSpace
 
 
 class GridSearch:
@@ -21,7 +21,8 @@ class GridSearch:
         self.values = list(param_grid.values())
 
         # Calculate grid shape and total combinations
-        self.grid_shape: list[Real] = [len(v) for v in self.values]
+        self.grid_shape: list[float] = [len(v) for v in self.values]
+        
         self.num_elements = int(np.prod(self.grid_shape))
         self.degrees_of_freedom = len(param_grid)
 

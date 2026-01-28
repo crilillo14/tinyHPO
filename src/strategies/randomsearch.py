@@ -28,11 +28,12 @@ class RandomSearch:
 
     def __init__(self,
                  param_grid: ParameterSpace,
-                 seed: Optional[int] = None) -> None:
+                 seed: Optional[int] = None,
+                 iterations : int = 50) -> None:
 
         self.param_grid = param_grid
         self.keys = list(param_grid.keys())
-        self.shape = self._get_shape()
+        self.randomvec = self.get_rand_vec()
 
         # Get unique seed if not provided
         if seed is None:
@@ -41,18 +42,15 @@ class RandomSearch:
         self.rng = np.random.default_rng(self.seed)
         self.history = []
         self.iteration = 0
-
-    def _get_shape(self) -> Dict[str, int]:
-        """Get the number of options for each parameter."""
-        shape = {}
-        for key, param in self.param_grid.items():
-            if param is ScalarHyperparameter:
-                shape[key] = 
-        return shape
+    
+    def get_rand_vec(self):
+        for 
+        
 
     def __call__(self) -> Dict[str, Any]:
         """Return a random hyperparameter set."""
         next_hyperparams = {}
+         
 
         for key, param in self.param_grid.items():
             # Randomly select an index and get the parameter value

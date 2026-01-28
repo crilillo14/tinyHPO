@@ -3,11 +3,13 @@ from tinygrad import tensor, nn, device, dtype, tensor
 import tinygrad
 
 from search import get_hpo_strategy
-
+from src.strategies.bayesian.search import BayesianSearch
 import numpy as np
 
 from typing import Any
+from src.types import ParameterSpace
 
+from abc import ABC, abstractmethod
 
 """
 Search methods.
@@ -19,8 +21,24 @@ bayesianSearch  # exploration-exploitation tradeoff -- best for high dimensional
 
 
 # in general, an hpo just needs to know methods for inference and measure f(x), and a parameter space.
+# Canonicalizing 
 
-class Hpo:
+
+class HPO(ABC):
+    # Should: 
+    # contain a search object
+    # hooks to wandb, viz search history, interface for moving around search.
+
+    @abstractmethod
+    def visualize(self):
+        pass
+    
+    @abstractmethod
+    def __iter__(self):
+        """Returns an iterator object of search historsearch historyy. 
+        """
+        pass
+class HyperparameterOptimizer(HPO):
 
     # TODO: assign types to args
     # TODO: Figure out data loading
@@ -29,7 +47,8 @@ class Hpo:
                  optimizer : Any,
                  loss_function : Callable,
                  metric_to_minimize : Callable, # in most cases, an inference step followed by loss measurement
-                 dataset = None,
+                 parameterspace : ParameterSpace,
+                 dataset,
                  maximize: bool = False,
                  search_method: str = 'bayesian',
                  acq_fn : str = 'ei'
@@ -38,19 +57,21 @@ class Hpo:
         
 
         self.model = model
-        self.parameter_grid = parameter_grid
-        self.X
-        
+        self.pspace = parameterspace
+        self.data = dataset
+
         # -- scoring --
         self.maximizing = maximize
         self.best_score = float("-inf")
         self.best_params = None
         self.hp_history = []      # keeps track of search history
 
-        # gridsearch, random, or BO
-        self.search_method = get_hpo_strategy(search_method)
+        # gridsearch, random, or bool
 
-        # data 
+        self.search = get_hpo_strategy(search_method, parameterspace, dataset,)
+
+            
+
     """
      * calculates best hyperparams. 
     """

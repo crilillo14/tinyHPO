@@ -6,10 +6,15 @@ from typing import Any, List, Dict
 from dataclasses import dataclass
 
 
+# ---------- Dataclasses ----------
+
 @dataclass
 class Hyperparameter:
     """Base class for any hyperparameter"""
     val: Any
+    
+    def __len__(self):
+        raise NotImplementedError("len should be implemeneted in subclasses")
     
 @dataclass
 class ScalarHyperparameter(Hyperparameter):
@@ -18,6 +23,10 @@ class ScalarHyperparameter(Hyperparameter):
     lower: float
     upper: float
     logscale: bool = False  # for lr. makes search space logarithmic:  10^{-9} to 10^{-8} ~~ 1 to 2.
+    partitions : int
+    
+    def __len__(self):
+        return self.partitions
     
 @dataclass 
 class CategoricalHyperparameter(Hyperparameter):
@@ -25,5 +34,9 @@ class CategoricalHyperparameter(Hyperparameter):
     val: Any
     possiblevalues: List[Any]
 
-# Type alias
+    def __len__(self):
+        return len(self.possiblevalues)
+
+
+# ---------- Type aliases
 ParameterSpace = Dict[str , Hyperparameter]

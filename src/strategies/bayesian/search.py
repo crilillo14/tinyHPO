@@ -17,37 +17,47 @@ from ..gridsearch import GridSearch
 from ..randomsearch import RandomSearch
 
 class BayesianSearch:
-    """Bayesian Optimization for hyperparameter search."""
+    """Bayesian Optimization for hyperparameter search.""""
 
-    def __init__(self,
+    def __init__( self,
                  covkernel : Kernel,
                  parameterspace: ParameterSpace,
+                 X,
+                 Y,
                  v = 1e-6, # noise variance
-                 searchstrategy : str = "bayesian"
                  acquisition: str = 'ei',
-                 n_initial: int = 5,
-                 seed: Optional[int] = None) -> None:
+                 steps: int = 5,
+                 seed: Optional[int] = None
+                 )  -> None:
+        self.steps = steps
+        
+        self.param_grid = parameterspace 
+
+        self.acq = acquisition
+        self.nsteps = steps 
+        self.process = GaussianProcessRegressor(
+            covkernel,
+            parameterspace,
+            X
+        )
+        
         """
         Initialize Bayesian search.
 
         Args:
             param_grid: Dict mapping parameter names to lists of possible values
             acquisition: Acquisition function name ('ei', 'pi', 'lcb')
-            n_initial: Number of random initial samples before using GP
+            n_initial: Number of random initial samp/les before using GP
             seed: Random seed for reproducibility
         """
-        self.param_grid = param_grid
-        self.acq = acquisition
-        self.nsteps = n_initial
-        self.process = GaussianProcessRegressor(
-            covkernel,
-            searchstrategy,
-            parameterspace,
-            v
-        )
-        
     
     def __call__(self):
         
         # optimize for the acquisition function for x_m+1.
         
+        
+        pass
+        
+
+    def sample(self):
+        """ Get next x"""
