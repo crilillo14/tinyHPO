@@ -30,10 +30,12 @@ class RandomSearch:
                  param_grid: ParameterSpace,
                  seed: Optional[int] = None,
                  iterations : int = 50) -> None:
+        
+        self.iterations = iterations 
 
         self.param_grid = param_grid
         self.keys = list(param_grid.keys())
-        self.randomvec = self.get_rand_vec()
+        self.randomvec = self.get_rand_vec(iterations)
 
         # Get unique seed if not provided
         if seed is None:
@@ -41,41 +43,19 @@ class RandomSearch:
         self.seed = seed
         self.rng = np.random.default_rng(self.seed)
         self.history = []
-        self.iteration = 0
+        self.curriteration = 0
     
-    def get_rand_vec(self):
-        for 
+    def get_rand_vec(self, iterations):
+        return np.random.randint(0, len(self.param_grid), size=iterations)
+    
+    def __call__(self, iterations : int) -> np.ndarray:
+        """Return all n iterations of random hyperparameter sets."""
         
-
-    def __call__(self) -> Dict[str, Any]:
-        """Return a random hyperparameter set."""
-        next_hyperparams = {}
-         
-
-        for key, param in self.param_grid.items():
-            # Randomly select an index and get the parameter value
-            index = self.rng.integers(0, self.shape[key])
-            next_hyperparams[key] = param[index]
-
-        self.history.append(next_hyperparams)
-        self.iteration += 1
-        return next_hyperparams
-
-    def sample(self, n: int) -> List[Dict[str, Any]]:
-        """Sample n random hyperparameter sets."""
-        return [self() for _ in range(n)]
-
-    def reset(self, seed: Optional[int] = None) -> None:
-        """Reset the search with optional new seed."""
-        if seed is not None:
-            self.seed = seed
-        self.rng = np.random.default_rng(self.seed)
-        self.history = []
-        self.iteration = 0
-
-    def __len__(self) -> int:
-        """Return total number of possible combinations."""
-        return int(np.prod(list(self.shape.values())))
-
-    def __repr__(self) -> str:
-        return f"RandomSearch(params={self.keys}, seed={self.seed}, sampled={self.iteration})"
+        # need to get n samples of H_n.
+        
+        return np.array([self.param_grid[self.randomvec[i]] for i in range(iterations)])
+    
+    def __iter__(self):
+        return iter(self.__call__(self.iterations))
+        
+            

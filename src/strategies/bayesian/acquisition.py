@@ -26,6 +26,8 @@ from scipy.stats import norm
 from typing import Callable
 
 
+
+
 def expected_improvement(mu: np.ndarray, sigma: np.ndarray, y_best: float, xi: float = 0.01) -> np.ndarray:
     sigma = np.maximum(sigma, 1e-9)  # Avoid division by zero
 

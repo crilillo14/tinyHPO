@@ -3,7 +3,7 @@ from tinygrad import tensor, nn, device, dtype, tensor
 import tinygrad
 
 from search import get_hpo_strategy
-from src.strategies.bayesian.search import BayesianSearch
+from src.strategies.bayesian.gaussianprocess import GaussianProcessRegressor
 import numpy as np
 
 from typing import Any
@@ -40,8 +40,6 @@ class HPO(ABC):
         pass
 class HyperparameterOptimizer(HPO):
 
-    # TODO: assign types to args
-    # TODO: Figure out data loading
     def __init__(self,
                  model : Any,
                  optimizer : Any,
@@ -68,7 +66,7 @@ class HyperparameterOptimizer(HPO):
 
         # gridsearch, random, or bool
 
-        self.search = get_hpo_strategy(search_method, parameterspace, dataset,)
+        self.search = get_hpo_strategy()
 
             
 
@@ -76,26 +74,19 @@ class HyperparameterOptimizer(HPO):
      * calculates best hyperparams. 
     """
 
-    def fit(self, n_trials: int = 50,
-                      search_method="bayesian",
-
-                      ) -> dict[str, float]:
-
-        for i in range(n_trials):
-
-            # dict type
-            current_hyperparameters, m_id = self.search_method()        # should return hp[], i[]
-            optimizer_hp = current_hyperparameters[]
-
-
-            m : int = 1
-
-
-    def buildmodel(self):
+    def fit(self):
+    
+    def model(self):
         pass
 
-    def fit():
-        pass
+    def bayesianFit(self):
+        
+        """def bayes_opt_step(gp, data, space):
+    candidates = sample(space)
+    mu, sigma = gp.predict(candidates)
+    scores = EI(mu, sigma)
+    return candidates[argmax(scores)]""" 
+
 
     def __next__():
         """Next prediction. """

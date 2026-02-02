@@ -19,13 +19,12 @@ def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations
     """
     strategy = strategy.lower()
 
-    if strategy == "grid":
+    if strategy == "grid": 
         return GridSearch(param_grid)
     elif strategy == "random":
         return RandomSearch(param_grid, seed=seed, iterations=iterations)
     elif strategy == "bayesian":
-        return BayesianSearch(kernel, param_grid, X, Y, searchstrategy=, acquisition=acquisition,
-                             n_initial=n_initial, seed=seed)
+        return BayesianSearch
     else:
         raise ValueError(f"Unknown strategy: {strategy}. "
                         f"Available: 'grid', 'random', 'bayesian'")

@@ -31,7 +31,7 @@ class SquaredExponential(Kernel):
         return np.exp(-0.5 * (np.sum(diff**2)) / (self.l**2))
 
 
-class Matern52Kernel:
+class Matern52Kernel(Kernel):
     """Matern 5/2 kernel"""
     def __init__(self, length_scale : float =1.0, sigma : float =1.0):
         self.length_scale = length_scale
@@ -42,7 +42,7 @@ class Matern52Kernel:
         scaled_r = np.sqrt(5) * r / self.length_scale
         return self.sigma**2 * (1 + scaled_r + scaled_r**2 / 3) * np.exp(-scaled_r)
 
-class Matern32Kernel:
+class Matern32Kernel(Kernel):
     """Matern 3/2 kernel"""
     def __init__(self, length_scale=1.0, sigma=1.0):
         self.length_scale = length_scale
@@ -53,7 +53,7 @@ class Matern32Kernel:
         scaled_r = np.sqrt(3) * r / self.length_scale
         return self.sigma**2 * (1 + scaled_r) * np.exp(-scaled_r)
 
-class RationalQuadraticKernel:
+class RationalQuadraticKernel(Kernel):
     """Rational quadratic kernel"""
     def __init__(self, length_scale=1.0, sigma=1.0, alpha=1.0):
         self.length_scale = length_scale
@@ -64,7 +64,7 @@ class RationalQuadraticKernel:
         r_sq = np.sum((X1[:, None] - X2[None, :])**2, axis=2)
         return self.sigma**2 * (1 + r_sq / (2 * self.alpha * self.length_scale**2))**(-self.alpha)
 
-class PeriodicKernel:
+class PeriodicKernel(Kernel):
     """Periodic kernel"""
     def __init__(self, length_scale=1.0, sigma=1.0, period=1.0):
         self.length_scale = length_scale
@@ -76,7 +76,7 @@ class PeriodicKernel:
         sin_term = np.sin(np.pi * r / self.period)
         return self.sigma**2 * np.exp(-2 * sin_term**2 / self.length_scale**2)
 
-class LinearKernel:
+class LinearKernel(Kernel):
     """Linear kernel"""
     def __init__(self, sigma_b=1.0, sigma_v=1.0, offset=0.0):
         self.sigma_b = sigma_b
@@ -86,7 +86,7 @@ class LinearKernel:
     def __call__(self, X1, X2):
         return self.sigma_b**2 + self.sigma_v**2 * (X1 - self.offset) @ (X2 - self.offset).T
 
-class WhiteNoiseKernel:
+class WhiteNoiseKernel(Kernel):
     """White noise kernel (diagonal only)"""
     def __init__(self, sigma=1.0):
         self.sigma = sigma
