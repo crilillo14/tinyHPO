@@ -9,7 +9,9 @@ from typing import Dict, List, Any, Optional
 from src.types import ParameterSpace 
 from src.strategies.bayesian.kernels import Kernel, SquaredExponential
 
-from strategies import GridSearch, RandomSearch, BayesianSearch
+from src.strategies.gridsearch import GridSearch
+from src.strategies.randomsearch import RandomSearch
+from src.strategies.bayesiansearch import BayesianSearch
 
 
 

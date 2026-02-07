@@ -2,21 +2,28 @@
 Bayesian Optimization components.
 """
 
-from .search import BayesianSearch
-from .gaussianprocess import GaussianProcessRegressor, RBF
+from typing import Any
+
 from .acquisition import (
-    upper_confidence_bound,
     expected_improvement,
     probability_of_improvement,
     lower_confidence_bound,
     get_acquisition_function,
 )
 
+
+# Lazy load if running gaussianprocess directly. 
+# 
+def __getattr__(name: str) -> Any:
+    if name == 'GaussianProcess':
+        from .gaussianprocess import GaussianProcess
+
+        return GaussianProcess
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 __all__ = [
     'BayesianSearch',
-    'GaussianProcessRegressor',
-    'RBF',
-    'upper_confidence_bound',
+    'GaussianProcess',
     'expected_improvement',
     'probability_of_improvement',
     'lower_confidence_bound',

@@ -9,6 +9,5 @@ Available strategies:
 
 from .gridsearch import GridSearch
 from .randomsearch import RandomSearch
-from .bayesian.search import BayesianSearch
 
 __all__ = ['GridSearch', 'RandomSearch', 'BayesianSearch']
