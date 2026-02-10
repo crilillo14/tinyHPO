@@ -38,7 +38,7 @@ def mnist_data():
 def param_grid():
     """HPO parameter grid for MNIST."""
     return {
-        "hidden_size": [64, 128],
+        "hidden_size": [64, 128], # this wont be supported till later...
         "dropout": [0.0, 0.5],
         "learning_rate": [0.001, 0.01],
     }

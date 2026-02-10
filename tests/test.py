@@ -1,4 +1,4 @@
-from optimizer import hyperparam_optim
+from src.hpo import HyperparameterOptimizer
 from tinygrad.nn.datasets import mnist
 
 # load your data
@@ -15,9 +15,4 @@ class my_model:
         return output
 
 # run optimization
-best_params = hyperparam_optim.optimize_model(
-    model_class=my_model,
-    train_data=(x_train, y_train),
-    test_data=(x_test, y_test),
-    n_trials=20
-)
+# TODO: implement this
