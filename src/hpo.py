@@ -45,8 +45,8 @@ class HyperparameterOptimizer(HPO):
                  optimizer : Any,
                  loss_function : Callable,
                  metric_to_minimize : Callable, # in most cases, an inference step followed by loss measurement
-                 parameterspace : ParameterSpace,
                  dataset,
+                 parameterspace : ParameterSpace,
                  maximize: bool = False,
                  search_method: str = 'bayesian',
                  acq_fn : str = 'ei'

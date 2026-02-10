@@ -5,14 +5,17 @@ Gaussian Process Regressor for Bayesian Optimization.
 """
 
 import numpy as np
-from scipy.optimize import minimize
+
+
 from src.types import ParameterSpace, ScalarHyperparameter
 from src.strategies.bayesian.kernels import Kernel, Matern32Kernel 
+from src.strategies.bayesian.acquisition import get_acquisition_function
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from scipy.linalg import cho_solve
+from scipy.optimize import minimize
+from numpy.linalg import cholesky, solve
 
 
 class GaussianProcess:
@@ -24,7 +27,7 @@ class GaussianProcess:
                  ):
         
         self.kernel = covkernel
-        self._acqfn = acqfn
+        self._acqfn = get_acquisition_function(acqfn)
         self.H = parameterspace
         self.parameterspace = parameterspace
         self.hparams = parameterspace.keys()
@@ -45,16 +48,16 @@ class GaussianProcess:
         K = self.kernel(X, X)
         K += (self.noise + 1e-8) * np.eye(len(X))
 
-        self.L = np.linalg.cholesky(K)
-        self.alpha = np.linalg.solve(
-            self.L.T, np.linalg.solve(self.L, y)
+        self.L = cholesky(K)
+        self.alpha = solve(
+            self.L.T, solve(self.L, y)
         )
 
     def predict(self, X_star):
         Kxs = self.kernel(X_star, self.X)
         mu = Kxs @ self.alpha
 
-        v = np.linalg.solve(self.L, Kxs.T)
+        v = solve(self.L, Kxs.T)
         Kss = self.kernel(X_star, X_star)
         var = np.diag(Kss) - np.sum(v ** 2, axis=0)
 
@@ -72,7 +75,7 @@ class GaussianProcess:
         
         
         
-        
+
 def testsampling():
     k = Matern32Kernel()
     lr = ScalarHyperparameter(1e-6, 1e-10, 1e-5, 10, True)
@@ -81,7 +84,7 @@ def testsampling():
     space : ParameterSpace = { "lr" : lr,
                      "m" : m    }
     
-    gp = GaussianProcess(k, space)
+    gp = GaussianProcess(k, space, acqfn='ei')
     
 
     samples = gp.sample(n=50)
