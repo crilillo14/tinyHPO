@@ -15,7 +15,6 @@ from src.strategies.randomsearch import RandomSearch
 from src.strategies.bayesiansearch import BayesianSearch
 
 
-
 def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations=50, seed=None, acquisitionfn='ei', kernel = SquaredExponential):
     """
     Factory function to get an HPO search strategy.
@@ -23,19 +22,14 @@ def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations
     strategy = strategy.lower()
 
     if strategy == "grid": 
-        return GridSearch(param_grid)
+        return GridSearch(param_grid, iterations)
     elif strategy == "random":
-        return RandomSearch(param_grid, seed=seed, iterations=iterations)
+        return RandomSearch(param_grid, iterations)
     elif strategy == "bayesian":
-        return BayesianSearch
+        return BayesianSearch(param_grid, iterations, acquisitionfn, )
     else:
         raise ValueError(f"Unknown strategy: {strategy}. "
                         f"Available: 'grid', 'random', 'bayesian'")
-        
-        
-
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 
 
 class SearchStrategy(ABC):

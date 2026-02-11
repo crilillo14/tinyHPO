@@ -2,12 +2,14 @@
 
 
 import numpy as np
+from abc import ABC, abstractmethod
 
 
-class Kernel:
+class Kernel(ABC):
     """Interface for Kernel Function Classes."""
+    @abstractmethod
     def __call__(self, X1, X2):
-        raise NotImplementedError
+        pass
 
 
 class RBF(Kernel):
