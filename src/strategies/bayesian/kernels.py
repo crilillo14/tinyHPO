@@ -9,7 +9,7 @@ class Kernel(ABC):
     """Interface for Kernel Function Classes."""
     @abstractmethod
     def __call__(self, X1, X2):
-        pass
+        ...
 
 
 class RBF(Kernel):
@@ -25,7 +25,7 @@ class RBF(Kernel):
 
 class SquaredExponential(Kernel):
     
-    def __init__(self, length_scale):
+    def __init__(self, length_scale : float = 1.0):
         self.l = length_scale
         
     def __call__(self, X1 : np.ndarray, X2 : np.ndarray):

@@ -29,10 +29,10 @@ The GP is just a surrogate it queries — nothing more.
 """
 
 class BayesianSearch(SearchStrategy):
-    def __init__(self, parameterspace, n_iterations, acqfn="ei", n_initial=10, kernel : Kernel = SquaredExponential, **kwargs):
+    def __init__(self, parameterspace, n_iterations, acqfn="ei", n_initial=10, kernel : Kernel = SquaredExponential(), **kwargs):
         super().__init__(parameterspace, n_iterations)
         self.n_initial = n_initial
-        self.gp = GaussianProcess(covkernel=Matern32Kernel(), parameterspace=parameterspace)
+        self.gp = GaussianProcess(covkernel=kernel, parameterspace=parameterspace)
         self.acqfn = get_acquisition_function(acqfn)
         self.X_observed = []
         self.y_observed = []
