@@ -8,19 +8,73 @@ Thus, given that this is supplementary tooling to tinygrad, it will need
 some uniformity in its input. Either the user can do that or this lib,
 so giving some tooling for wrapping tinygrad models is needed.
 """
-from pyexpat import model
+from src.types import ParameterSpace, ScalarHyperparameter, CategoricalHyperparameter
+from src.search import get_hpo_strategy
+import random
+
 
 from dataclasses import dataclass
-from typing import List, Callable
+from typing import List, Callable, Union, Tuple
 
 
-# to interact with the user's network
-@dataclass
-class hpo_callables:
-    modelFit : Callable
-    modelOptim : Callable
-    modelLoss : Callable
+
+
+
+"""
+
+Config can pass one of three types representing a linear / loglinear space of values:
+    1. A list of values
+    2. A tuple of (min, max, num_samples)
+    3. an iterator type
+
+Apart from that, it can alos pass a callable, and dependency inject its data as kwargs.
+
+
+like you could do 
+
+config = Config()
+    .set_search(GridSearch)
+    .append_hyperparameter("learning_rate", (0.001, 0.1, 5))
+    .append_hyperparameter("batch_size", (16, 128, 5))
+    .append_hyperparameter("dropout", [0.1, 0.5, 0.9], default=0.5)
+    .set_iterations(50)
+
+
+if given a list of values, search space is discrete.
+if given a range, search space is continuous.
+
+
+
+"""
+
+type SingletonSpace = Union[List[float], Tuple[float, float, int]]
+
+class Config():
+    def __init__(self, **kwargs):
+        self.hyperparameters : ParameterSpace = {}
+        self.iterations : int = 50
+        self.search_method : str = "random"
+        self.acquisition_function : str = "EI"
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+                
+    def set_search(self, search : str, acquisition_function="EI"):
+        self.search_method = search
+        if search == "bayesian":
+            self.acquisition_function = acquisition_function
+        return self
     
-
-
-def create_callables():
+    def set_iterations(self, iterations : int) -> Config:
+        self.iterations = iterations
+        return self
+    
+    
+    def append_hyperparameter(self, name: str, space: SingletonSpace, default=None, logscale=False) -> Config:
+        if space is tuple:
+            low, high, num_samples = space 
+            self.hyperparameters[name] = ScalarHyperparameter(low, high, num_samples, partitions=num_samples, logscale=logscale)
+        elif space is list:
+            raise NotImplementedError("Discrete search spaces are not yet supported")
+        else:
+            raise ValueError("Invalid search space")
+        return self

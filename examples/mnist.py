@@ -6,7 +6,8 @@ Configurable MNIST classifier using tinygrad.
 This module provides a flexible MNISTNet class that can be configured
 with different hyperparameters for use with HPO methods.
 """
-from tinygrad
+from tinygrad import nn
+from tinygrad.tensor import Tensor
 from tinygrad.nn.datasets import mnist
 from typing import Optional
 
@@ -22,7 +23,6 @@ class MNISTNet:
     """
 
     def __init__(self,
-                 hidden_size: int = 128,
                  dropout: float = 0.5) -> None:
         """
         Initialize MNIST network.
@@ -31,7 +31,7 @@ class MNISTNet:
             hidden_size: Size of the hidden fully-connected layer
             dropout: Dropout probability (0 = no dropout)
         """
-        self.hidden_size = hidden_size
+        self.hidden_size = 128
         self.dropout = dropout
 
         # Convolutional layers
@@ -40,8 +40,8 @@ class MNISTNet:
 
         # After conv layers: 28->26->13->11->5, channels=64
         # Flattened size: 64 * 5 * 5 = 1600
-        self.fc1 = nn.Linear(1600, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, 10)
+        self.fc1 = nn.Linear(1600, self.hidden_size)
+        self.fc2 = nn.Linear(self.hidden_size, 10)
 
     def __call__(self, x: Tensor) -> Tensor:
         """Forward pass."""
@@ -144,7 +144,15 @@ if __name__ == "__main__":
     print(f"Train: {X_train.shape}, Test: {X_test.shape}")
 
     # Create and train model
-    model = MNISTNet(hidden_size=128, dropout=0.5)
+    model = MNISTNet(dropout=0.5)
+    
+    config = {
+        "dropout": [0.1, 0.2, 0.3, 0.4, 0.5],
+        # "dropout" : ((0.1, 0.5) , 5)
+    }
+    
+    
+    
 
     print("\nTraining...")
     train_model(model, X_train, Y_train,

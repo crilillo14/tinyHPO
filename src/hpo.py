@@ -45,18 +45,27 @@ class HyperparameterOptimizer(HPO):
                  optimizer : Any,
                  loss_function : Callable,
                  metric_to_minimize : Callable, # in most cases, an inference step followed by loss measurement
-                 dataset,
                  parameterspace : ParameterSpace,
+                 Xtrain,
+                 Ytrain,
+                 Xtest,
+                 Ytest,
                  maximize: bool = False,
                  search_method: str = 'bayesian',
                  acq_fn : str = 'ei'
                  ) -> None:
 
         
-
+        # -- model evaluation -- 
         self.model = model
         self.pspace = parameterspace
-        self.data = dataset
+        self.optimizer = optimizer
+        self.loss_function = loss_function
+        self.metric_to_minimize = metric_to_minimize
+        self.Xtrain = Xtrain
+        self.Ytrain = Ytrain
+        self.Xtest = Xtest
+        self.Ytest = Ytest
 
         # -- scoring --
         self.maximizing = maximize
@@ -66,7 +75,7 @@ class HyperparameterOptimizer(HPO):
 
         # gridsearch, random, or bool
 
-        self.search = get_hpo_strategy()
+        self.search = get_hpo_strategy(search_method, parameterspace, Xtrain, Ytrain, acq_fn)
 
             
 
@@ -75,9 +84,7 @@ class HyperparameterOptimizer(HPO):
     """
 
     def fit(self):
-    
-    def model(self):
-        pass
+
 
     def bayesianFit(self):
         
