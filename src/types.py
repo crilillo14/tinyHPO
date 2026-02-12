@@ -45,8 +45,23 @@ class ScalarHyperparameter(Hyperparameter):
                 high = self.upper,
                 size = n
             )
-    
-@dataclass 
+
+    def sample(self):
+        """Return a single random value from this hyperparameter's range."""
+        return self(1).item()
+
+    @property
+    def values(self) -> np.ndarray:
+        """Return evenly spaced values across the range (for grid search)."""
+        if self.logscale:
+            return np.logspace(
+                np.log10(self.lower),
+                np.log10(self.upper),
+                num=self.partitions
+            )
+        return np.linspace(self.lower, self.upper, num=self.partitions)
+
+@dataclass
 class CategoricalHyperparameter(Hyperparameter):
     """For stuff like optimizer , activation function type """
     val: Any

@@ -2,7 +2,7 @@
 """
 Search Type wrapper around gaussian process. Owns the surrogate model, runs the search.
 """
-from strategies.bayesian.kernels import Kernel, SquaredExponential
+from .bayesian.kernels import Kernel, RBF
 
 
 from .bayesian.gaussianprocess import GaussianProcess
@@ -13,12 +13,8 @@ from src.search import SearchStrategy
 
 
 import numpy as np
-from scipy.optimize import minimize
-
-from src.strategies.bayesian.gaussianprocess import GaussianProcess
-from src.strategies.bayesian.kernels import Matern32Kernel
 from src.strategies.bayesian.acquisition import get_acquisition_function
-from src.types import ParameterSpace
+
 
 
 """
@@ -29,7 +25,7 @@ The GP is just a surrogate it queries — nothing more.
 """
 
 class BayesianSearch(SearchStrategy):
-    def __init__(self, parameterspace, n_iterations, acqfn="ei", n_initial=10, kernel : Kernel = SquaredExponential(), **kwargs):
+    def __init__(self, parameterspace, n_iterations, acqfn="ei", n_initial=10, kernel : Kernel = RBF(), **kwargs):
         super().__init__(parameterspace, n_iterations)
         self.n_initial = n_initial
         self.gp = GaussianProcess(covkernel=kernel, parameterspace=parameterspace)

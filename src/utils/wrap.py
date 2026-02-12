@@ -32,7 +32,7 @@ Apart from that, it can alos pass a callable, and dependency inject its data as 
 
 like you could do 
 
-config = Config()
+config = SearchSpaceConfig()
     .set_search(GridSearch)
     .append_hyperparameter("learning_rate", (0.001, 0.1, 5))
     .append_hyperparameter("batch_size", (16, 128, 5))
@@ -64,16 +64,22 @@ class SearchSpaceConfig():
             self.acquisition_function = acquisition_function
         return self
     
-    def set_iterations(self, iterations : int) -> Config:
+    def set_iterations(self, iterations : int) -> SearchSpaceConfig:
         self.iterations = iterations
         return self
     
     
-    def append_hyperparameter(self, name: str, space: SingletonSpace, default=None, logscale=False) -> Config:
-        if space is tuple:
-            low, high, num_samples = space 
-            self.hyperparameters[name] = ScalarHyperparameter(low, high, num_samples, partitions=num_samples, logscale=logscale)
-        elif space is list:
+    def append_hyperparameter(self, name: str, space: SingletonSpace, default=None, logscale=False) -> SearchSpaceConfig:
+        if isinstance(space, tuple):
+            low, high, num_samples = space
+            self.hyperparameters[name] = ScalarHyperparameter(
+                val=default or low,
+                lower=low,
+                upper=high,
+                partitions=num_samples,
+                logscale=logscale
+            )
+        elif isinstance(space, list):
             raise NotImplementedError("Discrete search spaces are not yet supported")
         else:
             raise ValueError("Invalid search space")

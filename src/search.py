@@ -8,14 +8,14 @@ Factory function for HPO search strategies.
 from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
 from src.types import ParameterSpace 
-from src.strategies.bayesian.kernels import Kernel, SquaredExponential
+from src.strategies.bayesian.kernels import Kernel, RBF
 
 from src.strategies.gridsearch import GridSearch
 from src.strategies.randomsearch import RandomSearch
 from src.strategies.bayesiansearch import BayesianSearch
 
 
-def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations=50, seed=None, acquisitionfn='ei', kernel = SquaredExponential):
+def get_hpo_strategy(strategy: str, param_grid: ParameterSpace, X, Y, iterations=50, seed=None, acquisitionfn='ei', kernel=RBF):
     """
     Factory function to get an HPO search strategy.
     """

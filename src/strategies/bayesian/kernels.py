@@ -23,16 +23,6 @@ class RBF(Kernel):
         sqdist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * np.dot(X1, X2.T)
         return np.exp(-0.5 / self.length_scale**2 * sqdist)
 
-class SquaredExponential(Kernel):
-    
-    def __init__(self, length_scale : float = 1.0):
-        self.l = length_scale
-        
-    def __call__(self, X1 : np.ndarray, X2 : np.ndarray):
-        diff = X1 - X2
-        return np.exp(-0.5 * (np.sum(diff**2)) / (self.l**2))
-
-
 class Matern52Kernel(Kernel):
     """Matern 5/2 kernel"""
     def __init__(self, length_scale : float =1.0, sigma : float =1.0):
