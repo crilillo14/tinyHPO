@@ -49,7 +49,7 @@ if given a range, search space is continuous.
 
 type SingletonSpace = Union[List[float], Tuple[float, float, int]]
 
-class Config():
+class SearchSpaceConfig():
     def __init__(self, **kwargs):
         self.hyperparameters : ParameterSpace = {}
         self.iterations : int = 50
